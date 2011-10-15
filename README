@@ -1,0 +1,9 @@
+Usage:
+
+1. Install the extension in chrome://extensions/ with the 'Load unpacked extension...' button
+2. Open the page you want to tweak
+3. Click the Schemester button
+4. Click a square to adjust the hex code for that 'swatch' (group of element-properties that use a color)
+5. Type in the new code and hit 'Set New Color'
+6. Repeat 4-5 as necessary
+7. Click 'Redraw Page' to see the page with the adjusted colors.

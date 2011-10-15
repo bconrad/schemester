@@ -1,0 +1,86 @@
+<html>
+<head>
+<script>
+var swatches = {};
+var bgpage = chrome.extension.getBackgroundPage();
+
+function redrawCallback (tab) {
+	chrome.tabs.sendRequest(tab.id, { op: "redraw", map: bgpage.map }, null);
+}
+
+function submitCallback (ev) {
+	var ante = document.getElementById("colorprompt").antecedent;
+	ante.style.backgroundColor = "#" + document.getElementById("colorprompt").value;
+	bgpage.map[ante.antecedentColor] = document.getElementById("colorprompt").value;
+}
+
+function clickCallback (ev) {
+	var inputdiv = document.getElementById("inputdiv");
+	var input = document.createElement("input");
+	var submit = document.createElement("button");
+	submit.innerHTML = "Set New Color";
+	submit.onclick = submitCallback;
+
+	inputdiv.innerHTML = "";
+	input.id = "colorprompt";
+	input.value = ev.target.antecedentColor;
+	input.antecedent = ev.target;
+	inputdiv.appendChild(input);
+	inputdiv.appendChild(submit);
+}
+
+function buildSwatch (color) {
+	var newdiv = document.createElement("div");
+	newdiv.style.display = "inline-block";
+	if (bgpage.map[color])
+		newdiv.style.backgroundColor = "#" + bgpage.map[color]; 
+	else
+		newdiv.style.backgroundColor = "#" + color; 
+
+	newdiv.style.width = "30px";
+	newdiv.style.height = "30px";
+	newdiv.innerHTML = "&nbsp;";
+	newdiv.onclick = clickCallback;
+	newdiv.antecedentColor = color;
+	document.getElementById("swatchdiv").appendChild(newdiv);
+}
+
+function initCallback (tab) {
+	chrome.tabs.sendRequest(tab.id, { op: "init" }, null);
+}
+
+function loadColorsCallback (tab) {
+	bgpage.map = {};
+	chrome.tabs.sendRequest(tab.id, { op: "load" }, null);
+}
+
+function connect() {
+	chrome.tabs.getSelected(null, initCallback);
+}
+function dumpSwatches() {
+	for (var i = 0; i < swatches.length; i++) {
+		buildSwatch(swatches[i]);
+	}
+}
+
+chrome.extension.onRequest.addListener(
+		function (request, sender, response) {
+			swatches = request;
+			document.getElementById("swatchdiv").innerHTML = "";
+			dumpSwatches();
+			console.log(request);
+		}
+		);
+
+// see if we already have the colors loaded
+connect();
+
+</script>
+</head>
+<body style="width: 400px;">
+<a href="javascript:chrome.tabs.getSelected(null, loadColorsCallback);">Load Colors</a>
+<a href="javascript:chrome.tabs.getSelected(null, redrawCallback);">Redraw Page</a>
+<div id="swatchdiv"></div>
+</body>
+<div id="inputdiv"></div>
+</html>
